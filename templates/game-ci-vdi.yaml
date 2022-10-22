@@ -68,13 +68,13 @@ snap:
   commands:
     00: ['install', '--beta', 'steam']
     01: ['install', 'firefox']
+    # We have to use the snap version of firefox because the apt-version is not correctly 
+    # detected as the system default which causes errors when unity-hub tries to authenticate
 apt:
   primary:
     - arches: [default]
       uri: http://us.archive.ubuntu.com/ubuntu/
   sources:
-    firefox:
-      source: "ppa:mozillateam/ppa" 
     unityhub.list:
       source: deb https://hub.unity3d.com/linux/repos/deb stable main
 package_update: true
@@ -115,6 +115,7 @@ packages:
   - xvfb
   - ubuntu-drivers-common
 bootcmd:
+  - - echo "---Updating network config for use with static ip addressing---" && sleep 1
   - netplan --degug generate
   - netplan --debug apply
   - mkdir -p "/opt/unityhub/chrome-sandbox"
