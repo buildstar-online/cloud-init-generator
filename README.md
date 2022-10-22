@@ -14,26 +14,31 @@ Available options:
 
 -v, --verbose           Print script debug info
 
--s, --slim              Use a minimal version of the user-data template.
-
 -upd, --update          Update apt packages during provisioning
+                        Defaults to False
 
 -upg, --upg             Upgrade packages during provisioning
+                        Defaults to False
 
--p, --password          Password to set up for the VM Users.
+-t, --template          The template to use as the base for clopud-init.
+                        Templates are located in the templates directory.
+                        Defaults to 'slim.yaml' if no value specified.
+
+-p, --password          Password to set up for the VM Users. 
+                        Defaults to 'password' if no value is specified
 
 -u, --username          Username for non-system account
+                        Defaults to the current shell user
 
--i, --ip-address        IP address for netplan to apply.
+-gh, --github-username  (Optional) Github username from which to pull public keys
 
--gw, --gateway          IP address for the default network gateway
+-n, --vm-name           Hostname/name for the Virtual Machine. Influences the 
+                        name of the syste account - no special chars plz.
 
--dns, --dns-server      IP address for your DNS server
-
--gh, --github-username  Github username from which to pull public keys
-
--n, --vm-name           Hostname/name for the Virtual Machine. Influences the name of the 
-                        system account - no special chars plz.
+-e, --extra-vars        Some templates will require extra values.
+                        Use this option to supply these values as 
+                        Key-Value-Pairs separated via commas.
+                        Example: -e "VAR0='some string'","VAR1=$(pwd)"
 ```
 
 ## Debugging 
