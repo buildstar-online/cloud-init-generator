@@ -1,4 +1,10 @@
 #cloud-config
+# - Required Extra Vars:
+# $INTERFACE
+# $IP_ADDRESS
+# $GATEWAY_IP
+# $DNS_SERVER_IP
+# $ROOT_USER
 autoinstall:
   version: 1
   update: yes
@@ -35,11 +41,11 @@ autoinstall:
   identity:
     hostname: ${HOST_NAME}
     password: ${PASSWORD}
-    username: bradley
+    username: ${ROOT_USER}
   ssh:
     allow-pw: true
     install-server: true
-    authorized-keys: ${SSH_KEYS}
+    authorized-keys: ['${VM_KEY}']
   packages: 
     - software-properties-common
     - ca-certificates
@@ -57,13 +63,12 @@ autoinstall:
         passwd: ${PASSWD}
         ssh_import_id:
           - gh:${GITHUB_USER}
-      - name: ${VM_USER}
+      - name: ${VM_ADMIN}
         gecos: system acct
         groups: users, admin, docker, sudo
         sudo: ALL=(ALL) NOPASSWD:ALL
         shell: /bin/bash
         lock_passwd: false
-        passwd: ${PASSWD}
         ssh_authorized_keys:
           - ${VM_KEY}
     apt:
@@ -77,8 +82,8 @@ autoinstall:
         helm.list:
           source: deb https://baltocdn.com/helm/stable/debian/ all main
           keyid: 81BF832E2F19CD2AA0471959294AC4827C1A168A
-    package_update: true
-    package_upgrade: true
+    package_update: ${UPDATE}
+    package_upgrade: ${UPGRADE}
     packages:
       - kubectl
       - wget
@@ -100,8 +105,8 @@ autoinstall:
       - wget https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
       - chmod +x /install.sh
       - chmod 777 /install.sh
-      - sudo -u max NONINTERACTIVE=1 /bin/bash /install.sh
-      - sudo -u max /home/linuxbrew/.linuxbrew/bin/brew shellenv >> /home/max/.profile
+      - sudo -u ${USER} NONINTERACTIVE=1 /bin/bash /install.sh
+      - sudo -u ${USER} /home/linuxbrew/.linuxbrew/bin/brew shellenv >> /home/${USER}/.profile
       - export GRUB_CMDLINE_LINUX_DEFAULT="GRUB_CMDLINE_LINUX_DEFAULT=\"preempt=voluntary iommu=pt amd_iommu=on intel_iommu=on\""
       - sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=\"\"/$GRUB_CMDLINE_LINUX_DEFAULT/g" /etc/default/grub
       - sed -i "s/GRUB_DEFAULT=0/GRUB_DEFAULT=saved/g" /etc/default/grub
