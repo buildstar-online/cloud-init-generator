@@ -115,7 +115,7 @@ packages:
   - xvfb
   - ubuntu-drivers-common
 bootcmd:
-  - - echo "---Updating network config for use with static ip addressing---" && sleep 1
+  - echo "---Updating network config for use with static ip addressing---" && sleep 1
   - netplan --degug generate
   - netplan --debug apply
   - mkdir -p "/opt/unityhub/chrome-sandbox"
