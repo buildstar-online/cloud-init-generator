@@ -1,0 +1,46 @@
+#cloud-config
+hostname: ${VM_NAME}
+fqdn: ${VM_NAME}
+disable_root: false
+users:
+  - name: ${USER}
+    groups: users, admin, docker, sudo
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: ${PASSWD}
+    ssh_import_id:
+      - gh:${GITHUB_USER}
+  - name: ${VM_ADMIN}
+    gecos: system acct
+    groups: users, admin, docker, sudo
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: ${PASSWD}
+    ssh_authorized_keys:
+      - ${VM_KEY}
+package_update: ${UPDATE}
+package_upgrade: ${UPGRADE}
+packages:
+  - wget
+  - curl
+  - git
+  - build-essential
+  - python3-pip
+  - docker.io
+runcmd:
+  - curl -LJO "https://gitlab-runner-downloads.s3.amazonaws.com/latest/deb/gitlab-runner_amd64.deb"
+  - dpkg -i gitlab-runner_64.deb
+  - sudo gitlab-runner register \
+      --non-interactive \
+      --url ${GITLAB_URL} \
+      --registration-token ${GITLAB_TOKEN} \
+      --executor "docker" \
+      --docker-image alpine:latest \
+      --description ${DESCRIPTION} \
+      --maintenance-note "Free-form maintainer notes about this runner" \
+      --run-untagged=${UNTAGGED} \
+      --locked=${LOCKED} \
+      --access-level=${ACCESS_LEVEL}
+
