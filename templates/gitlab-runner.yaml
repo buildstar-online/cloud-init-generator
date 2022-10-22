@@ -1,4 +1,11 @@
 #cloud-config
+# - Required Extra Vars
+# $GITLAB_URL
+# $GITLAB_TOKEN
+# $DESCRIPTION
+# $UNTAGGED
+# $LOCKED
+# $ACCESS_LEVEL
 hostname: ${VM_NAME}
 fqdn: ${VM_NAME}
 disable_root: false
