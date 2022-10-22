@@ -35,6 +35,25 @@ Cloud-Init Docs:
   --template "slim.yaml"
 ```
 
+## Advanced Usage with Extra Vars
+
+Some templates will require additional variabels aside from those specified in the --help.
+To supply extra variables used the `-e` or `--extra-vars` flag and provide the extra values as a comma-separated list of Key-Value-Pairs represented as strings without linebreaks or spaces between them.
+
+Example:
+
+```bash
+
+./cigen.sh --update --upgrade \
+  --password "S0m3P@ssw0Rd!" \
+  --github-username "cloudymax" \
+  --username "cloudymax" \
+  --vm-name "cloudyboi" \
+  --template "scrap-metal-auto-install.yaml" \
+  --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
+```
+
+## Options
 
 ```bash
 Available options:
@@ -68,24 +87,6 @@ Available options:
                         Use this option to supply these values as 
                         Key-Value-Pairs separated via commas.
                         Example: -e "VAR0='some string'","VAR1=$(pwd)"
-```
-
-## Advanced Usage with Extra Vars
-
-Some templates will require additional variabels aside from those specified in the --help.
-To supply extra variables used the `-e` or `--extra-vars` flag and provide the extra values as a comma-separated list of Key-Value-Pairs represented as strings without linebreaks or spaces between them.
-
-Example:
-
-```bash
-
-./cigen.sh --update --upgrade \
-  --password "S0m3P@ssw0Rd!" \
-  --github-username "cloudymax" \
-  --username "cloudymax" \
-  --vm-name "cloudyboi" \
-  --template "scrap-metal-auto-install.yaml" \
-  --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
 ```
 
 ## Debugging 
