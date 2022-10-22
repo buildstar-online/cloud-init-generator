@@ -6,8 +6,15 @@ This script will quickly modify a cloud-init user-data template that can be used
 
 ```bash
 
-./cigen.sh [-h] [-v] [-s] [-upd] [-upg] [-p <password>] [-u <user>] [-gw <gateway ip>] -dns [<dns server ip> ][-gh <user>] [-n <vm name>]
+./cigen.sh --update --upgrade \
+  --password "S0m3P@ssw0Rd!" \
+  --github-username "cloudymax" \
+  --username "cloudymax" \
+  --vm-name "cloudyboi" \
+  --template "slim.yaml"
+```
 
+```bash
 Available options:
 
 -h, --help              Print this help and exit
