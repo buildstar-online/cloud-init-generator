@@ -1,4 +1,11 @@
 #cloud-config
+# - Required Extra Vars
+# $INTERFACE
+# $IP_ADDRESS
+# $GATEWAY_IP
+# $DNS_SERVER_IP
+# $DESKTOP_PACKAGE
+# $EDITOR_VERSION
 cloud_config_modules:
  - apk_configure
  - apt_configure
@@ -32,7 +39,7 @@ users:
     passwd: ${PASSWD}
     ssh_import_id:
       - gh:${GITHUB_USER}
-  - name: ${VM_USER}
+  - name: ${VM_ADMIN}
     gecos: system acct
     groups: users, admin, docker, sudo
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -47,16 +54,16 @@ write_files:
   content: |
     network:
       ethernets:
-        enp0s3:
+        ${INTERFACE}:
           dhcp4: no
           dhcp6: no
           addresses: [${IP_ADDRESS}/24]
           routes:
             - to: default
-              via: ${GATEWAY}
+              via: ${GATEWAY_IP}
           mtu: 1500
           nameservers:
-            addresses: [$DNS]
+            addresses: [${DNS_SERVER_IP}]
       renderer: networkd
       version: 2
 - path: /etc/unity-hub
@@ -111,7 +118,7 @@ packages:
   - libgbm1
   - gnupg
   - x11vnc
-  - ubuntu-desktop
+  - ${DESKTOP_PACKAGE}
   - xvfb
   - ubuntu-drivers-common
 bootcmd:
