@@ -3,22 +3,6 @@
 # Simple template modification script to customize cloud-init user-data 
 # cloud-init logs are in /run/cloud-init/result.json
 # <3 max
-#
-# If we want to debug the user-data in cloud-init, we can try the following steps:
-# https://cloudinit.readthedocs.io/en/latest/topics/debugging.html
-#
-#    # Reset and re-run
-#    sudo rm -rf /var/lib/cloud/*
-#    sudo cloud-init init
-#    sudo cloud-init modules -m final
-#    
-#    # Analyze logs
-#    sudo cloud-init analyze show -i /var/log/cloud-init.log
-#    sudo cloud-init analyze dump -i /var/log/cloud-init.log
-#    sudo cloud-init analyze blame -i /var/log/cloud-init.log
-#    
-#    # Run single module
-#    sudo cloud-init single --name cc_ssh --frequency always
 #########################################################################
 set -o pipefail
 
@@ -27,15 +11,19 @@ parse_params() {
                 case "${1-}" in
                 -h | --help) usage ;;
                 -v | --verbose) set -x ;;
-                -s | --slim) export SLIM="true" ;;
                 -upd | --update) export UPDATE="true" ;;
                 -upg | --upgrade) export UPGRADE="true" ;;
+                -t | --template) 
+                        export TEMPLATE="${2-}" 
+                        shift
+                        ;;
                 -p | --password)
-                        export PASSWD="${2-}"
+                        export PASSWD=$(mkpasswd -m sha-512 --rounds=4096 \
+                            "${2-}" -s "saltsaltlettuce")
                         shift
                         ;;
                 -u | --username)
-                        export USER="${2-}"
+                        export USERNAME="${2-}"
                         shift
                         ;;
                 -gh | --github-username)
@@ -44,19 +32,17 @@ parse_params() {
                         ;;
                 -n | --vm-name)
                         export VM_NAME="${2-}"
-                        export VM_ADMIN="${VM_NAME}admin"
                         shift
                         ;;
-                -ip | --ip-address)
-                        export IP_ADDRESS="${2-}"
-                        shift
-                        ;;
-                -gw | --gateway)
-                        export GATEWAY="${2-}"
-                        shift
-                        ;;
-                -dns | --dns-server)
-                        export DNS="${2-}"
+                -e | --extra-vars)
+                        IFS=',' 
+                        read -r -a VAR_ARRAY <<< "${2-}"
+                        for ELEMENT in "${VAR_ARRAY[@]}"
+                        do
+                            export "$ELEMENT"
+                            log "Export extra var: $ELEMENT"
+                        done
+                        IFS=' '
                         shift
                         ;;
                 -?*) die "Unknown option: $1" ;;
@@ -73,9 +59,29 @@ parse_params() {
             export UPGRADE="false"
         fi
 
-        if [ ! $SLIM ]; then
-            export SLIM="false"
+        if [ ! $TEMPLATE ]; then
+            TEMPLATE="slim.yaml"
         fi
+
+        if [ ! $USERNAME ]; then
+            export USERNAME=$USER
+        fi
+
+        if [ ! $GITHUB_USER ]; then
+            export GH_USER_IMPORT="False"
+        fi
+
+        if [ ! $PASSWORD ]; then
+            PASSWORD=$(mkpasswd -m sha-512 --rounds=4096 \
+                "password" -s "saltsaltlettuce")
+        fi
+
+        if [ ! $VM_NAME ]; then
+            export VM_NAME=$(cat /dev/urandom | env LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+        fi
+
+        export VM_ADMIN="${VM_NAME}admin"
+
 
         return 0
 }
@@ -93,25 +99,31 @@ Available options:
 
 -v, --verbose           Print script debug info
 
--s, --slim              Use a minimal version of the user-data template.
-
 -upd, --update          Update apt packages during provisioning
+                        Defaults to False
 
 -upg, --upg             Upgrade packages during provisioning
+                        Defaults to False
 
--p, --password          Password to set up for the VM Users.
+-t, --template          The template to use as the base for clopud-init.
+                        Templates are located in the templates directory.
+                        Defaults to 'slim.yaml' if no value specified.
+
+-p, --password          Password to set up for the VM Users. 
+                        Defaults to 'password' if no value is specified
 
 -u, --username          Username for non-system account
+                        Defaults to the current shell user
 
--i, --ip-address        IP address for netplan to apply.
+-gh, --github-username  (Optional) Github username from which to pull public keys
 
--gw, --gateway          IP address for the default network gateway
+-n, --vm-name           Hostname/name for the Virtual Machine. Influences the 
+                        name of the syste account - no special chars plz.
 
--dns, --dns-server      IP address for your DNS server
-
--gh, --github-username  Github username from which to pull public keys
-
--n, --vm-name           Hostname/name for the Virtual Machine. Influences the name of the syste account - no special chars plz.
+-e, --extra-vars        Some templates will require extra values.
+                        Use this option to supply these values as 
+                        Key-Value-Pairs separated via commas.
+                        Example: -e "VAR0='some string'","VAR1=$(pwd)"
 
 EOF
         exit
@@ -138,24 +150,18 @@ verify_deps(){
     log " - All required utilities are installed."
 }
 
+create_user_data(){
+log "📝 Creating user-data file"
 
+VALUES=$(envsubst < templates/${TEMPLATE})
+echo -e "$VALUES" > user-data.yaml
 
-create_slim_user_data(){
-log "📝 Create a minimal user-data file"
+log "📝 Checking against the cloud-inint schema..."
 
-cat > user-data <<EOF
+RESULT=$(cloud-init schema --config-file user-data.yaml)
+log "$RESULT"
 
-EOF
-
-log " - Done."
-}
-
-create_full_user_data(){
-log "📝 Create a full user-data file"
-
-cat > user-data <<EOF
-
-EOF
+#cat user-data.yaml
 
 log " - Done."
 }
@@ -174,15 +180,10 @@ die() {
 
 main(){
 create_ssh_key
-
-if [ "$SLIM" == "true" ]; then
-  create_slim_user_data
-else
-  #create_ansible_user_data
-  create_full_user_data
-fi
+create_user_data
 }
 
+verify_deps
 parse_params "$@"
 main
 

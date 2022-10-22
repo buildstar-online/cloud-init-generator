@@ -13,7 +13,7 @@ users:
     passwd: ${PASSWD}
     ssh_import_id:
       - gh:${GITHUB_USER}
-  - name: ${VM_USER}
+  - name: ${VM_ADMIN}
     gecos: system acct
     groups: users, admin, docker, sudo
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -22,11 +22,8 @@ users:
     passwd: ${PASSWD}
     ssh_authorized_keys:
       - ${VM_KEY}
-package_update: true
-packages:
-  - curl
-  - docker.io
-  - wget
+package_update: ${UPDATE}
+package_upgrade: ${UPGRADE}
 runcmd:
   - sed -i -e '/^Port/s/^.*$/Port 22/' /etc/ssh/sshd_config
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
