@@ -1,13 +1,12 @@
 # cloud-init-generator
 
-Generates the user-data section of a cloud-init configuration file from a template.
+This script will quickly modify a cloud-init user-data template that can be used to provision VMs and Metal. 
 
 ## Usage
 
 ```bash
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-s] [-upd] [-upg] [-p <password>] [-u <user>] [-gh <user>] [-n <name>]
 
-💁 This script will quickly modify a cloud-init user-data template that can be used to provision virtual-machines, metal, and containers.
+./cigen.sh [-h] [-v] [-s] [-upd] [-upg] [-p <password>] [-u <user>] [-gw <gateway ip>] -dns [<dns server ip> ][-gh <user>] [-n <vm name>]
 
 Available options:
 
@@ -36,11 +35,18 @@ Available options:
 -n, --vm-name           Hostname/name for the Virtual Machine. Influences the name of the 
                         system account - no special chars plz.
 ```
-cloud-init logs are in /run/cloud-init/result.json
 
-If you want to debug the user-data in cloud-init, we can try the following steps:
+## Debugging 
 
-- https://cloudinit.readthedocs.io/en/latest/topics/debugging.html
+Docs link: https://cloudinit.readthedocs.io/en/latest/topics/debugging.html
+
+cloud-init logs are located in:
+
+- `/run/cloud-init/result.json`
+- `/var/log/cloud-init.log`
+- `/var/log/cloud-init-output.log`
+
+If you want to debug the user-data in cloud-init, try the following steps:
 
 - Reset and re-run
   ```bash
