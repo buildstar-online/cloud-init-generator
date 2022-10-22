@@ -1,4 +1,6 @@
 #cloud-config
+# - Required Extra Vars
+# $ANSIBLE_PROFILE
 hostname: ${VM_NAME}
 fqdn: ${VM_NAME}
 disable_root: false
