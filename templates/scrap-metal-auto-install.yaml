@@ -39,8 +39,8 @@ autoinstall:
           ssd: yes
           size: smallest
   identity:
-    hostname: ${HOST_NAME}
-    password: ${PASSWORD}
+    hostname: ${VM_NAME}
+    password: ${PASSWD}
     username: ${ROOT_USER}
   ssh:
     allow-pw: true
