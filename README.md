@@ -1,5 +1,7 @@
 # Cloud-Init Generator (cigen)
 
+** Work in progress**
+
 `cigen.sh` will fill in a Cloud-Init `user-data` template that can be used to provision local or cloud-based VMs and Metal. 
 
 Cloud-Init officially supports 8 OSs - Ubuntu, Arch Linux, CentOS, Red Hat, FreeBSD, Fedora, Gentoo Linux, and openSUSE. These examples have been developed and tested for use with Ubuntu.
