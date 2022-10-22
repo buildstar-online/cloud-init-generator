@@ -2,15 +2,22 @@
 
 This script will quickly modify a cloud-init user-data template that can be used to provision local or cloud-based VMs and Metal. Today, Cloud-Init officially supports 8 OSs - Ubuntu, Arch Linux, CentOS, Red Hat, FreeBSD, Fedora, Gentoo Linux, and openSUSE. These examples have been developed and tested for use with Ubuntu.
 
-Use with Terraform on most major cloud provders:
+Use on bare-metal:
+- [PXEless](https://github.com/cloudymax/pxeless)
+
+On self-hosted VMs:
+- [Scrap-Metal](https://github.com/cloudymax/Scrap-Metal)
+- [Multipass](https://ubuntu.com/blog/using-cloud-init-with-multipass)
+
+Or via Terraform on most major clouds:
+- [Equinix Metal](https://registry.terraform.io/providers/equinix/equinix/latest/docs/resources/equinix_metal_device)
 - [AWS EC2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
 - [Azure Compute](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine)
-- [Equinix Metal](https://registry.terraform.io/providers/equinix/equinix/latest/docs/resources/equinix_metal_device)
+- [Digital Ocean Droplets](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs/resources/droplet)
 - [Google Compute Engine (as metadata field)](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance)
 - [Terraform templating module for cloud-init](https://registry.terraform.io/providers/hashicorp/cloudinit/2.2.0)
 
-
-Docs:
+Cloud-Init Docs:
 - [Cloud-Init Official Docs](https://cloudinit.readthedocs.io/en/latest/)
 - [Extra examples from Canonical](https://github.com/canonical/cloud-init/tree/main/doc/examples)
 
