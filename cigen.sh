@@ -138,87 +138,13 @@ verify_deps(){
     log " - All required utilities are installed."
 }
 
-create_ansible_user_data(){
-log "📝 Create a minimal user-data file"
 
-cat > user-data <<EOF
-#cloud-config
-hostname: ${VM_NAME}
-fqdn: ${VM_NAME}
-disable_root: false
-users:
-  - name: ${USER}
-    groups: users, admin, docker, sudo
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
-    lock_passwd: false
-    passwd: ${PASSWD}
-    ssh_import_id:
-      - gh:${GITHUB_USER}
-  - name: ${VM_ADMIN}
-    gecos: system acct
-    groups: users, admin, docker, sudo
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
-    lock_passwd: false
-    passwd: ${PASSWD}
-    ssh_authorized_keys:
-      - ${VM_KEY}
-package_update: ${UPDATE}
-package_upgrade: ${UPGRADE}
-packages:
-  - wget
-  - curl
-  - git
-  - build-essential
-  - python3-pip
-runcmd:
-  - sudo -u ${VM_ADMIN} echo "export PATH=\"/home/${VM_ADMIN}/.local/bin:\$PATH\"" >> /home/${VM_ADMIN}/.profile 
-  - git clone https://github.com/cloudymax/pxeless.git
-  - sudo -u ${VM_ADMIN} env "PATH=$PATH:/home/$VM_ADMIN/.local/bin" /pxeless/provisioner/provision.sh --ansible-user ${VM_ADMIN} --profile jax --cows random
-EOF
-
-log " - Done."
-}
 
 create_slim_user_data(){
 log "📝 Create a minimal user-data file"
 
 cat > user-data <<EOF
-#cloud-config
-hostname: ${VM_NAME}
-fqdn: ${VM_NAME}
-disable_root: false
-network:
-  config: disabled
-users:
-  - name: ${USER}
-    groups: users, admin, docker, sudo
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
-    lock_passwd: false
-    passwd: ${PASSWD}
-    ssh_import_id:
-      - gh:${GITHUB_USER}
-  - name: ${VM_USER}
-    gecos: system acct
-    groups: users, admin, docker, sudo
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
-    lock_passwd: false
-    passwd: ${PASSWD}
-    ssh_authorized_keys:
-      - ${VM_KEY}
-package_update: true
-packages:
-  - curl
-  - docker.io
-  - wget
-runcmd:
-  - sed -i -e '/^Port/s/^.*$/Port 22/' /etc/ssh/sshd_config
-  - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
-  - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
-  - systemctl restart sshd
+
 EOF
 
 log " - Done."
@@ -228,97 +154,7 @@ create_full_user_data(){
 log "📝 Create a full user-data file"
 
 cat > user-data <<EOF
-#cloud-config
-hostname: ${VM_NAME}
-fqdn: ${VM_NAME}
-disable_root: false
-users:
-  - name: ${USER}
-    groups: users, admin, docker, sudo
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
-    lock_passwd: false
-    passwd: ${PASSWD}
-    ssh_import_id:
-      - gh:${GITHUB_USER}
-  - name: ${VM_USER}
-    gecos: system acct
-    groups: users, admin, docker, sudo
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
-    lock_passwd: false
-    passwd: ${PASSWD}
-    ssh_authorized_keys:
-      - ${VM_KEY}
-write_files:
-- path: /etc/netplan/99-my-new-config.yaml
-  permissions: '0644'
-  content: |
-    network:
-      ethernets:
-        enp0s3:
-          dhcp4: no
-          dhcp6: no
-          addresses: [${IP_ADDRESS}/24]
-          routes:
-            - to: default
-              via: ${GATEWAY}
-          mtu: 1500
-          nameservers:
-            addresses: [$DNS]
-      renderer: networkd
-      version: 2
-apt:
-  primary:
-    - arches: [default]
-      uri: http://us.archive.ubuntu.com/ubuntu/
-  sources:
-    kubectl.list:
-      source: deb [arch=amd64] https://apt.kubernetes.io/ kubernetes-xenial main
-      keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
-    helm.list:
-      source: deb https://baltocdn.com/helm/stable/debian/ all main
-      keyid: 81BF832E2F19CD2AA0471959294AC4827C1A168A
-package_update: ${UPDATE}
-package_upgrade: ${UPGRADE}
-packages:
-  - neofetch
-  - kubectl
-  - wget
-  - helm
-  - htop
-  - docker.io
-  - build-essential
-  - python3-pip
-  - procps
-  - file
-  - ubuntu-drivers-common
-  - xinit
-  - xterm
-  - xfce4
-  - xfce4-goodies
-  - x11vnc
-runcmd:
-  - mkdir -p /new_kernel
-  - wget -O /new_kernel/linux-headers-5.19.0-051900-generic_5.19.0-051900.202207312230_amd64.deb https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.19/amd64/linux-headers-5.19.0-051900-generic_5.19.0-051900.202207312230_amd64.deb
-  - wget -O /new_kernel/linux-headers-5.19.0-051900_5.19.0-051900.202207312230_all.deb https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.19/amd64/linux-headers-5.19.0-051900_5.19.0-051900.202207312230_all.deb
-  - wget -O /new_kernel/linux-image-unsigned-5.19.0-051900-generic_5.19.0-051900.202207312230_amd64.deb https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.19/amd64/linux-image-unsigned-5.19.0-051900-generic_5.19.0-051900.202207312230_amd64.deb
-  - wget -O /new_kernel/linux-modules-5.19.0-051900-generic_5.19.0-051900.202207312230_amd64.deb https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.19/amd64/linux-modules-5.19.0-051900-generic_5.19.0-051900.202207312230_amd64.deb
-  - dpkg -i /new_kernel/*
-  - apt-get purge linux-headers-5.15*
-  - apt-get purge linux-image-5.15*
-  - apt-get --purge autoremove
-  - ubuntu-drivers autoinstall
-  - wget https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
-  - chmox +x /install.sh
-  - chmod 777 /install.sh
-  - sudo -u ${VM_USER} NONINTERACTIVE=1 /bin/bash /install.sh
-  - sudo -u ${VM_USER} /home/linuxbrew/.linuxbrew/bin/brew shellenv >> /home/${VM_USER}/.profile
-  - sudo -u ${USER} /home/linuxbrew/.linuxbrew/bin/brew shellenv >> /home/${USER}/.profile
-  - sudo -u ${USER} /home/linuxbrew/.linuxbrew/bin/brew install gotop krew
-  - sudo -u ${USER} echo "export PATH=\"${PATH}:${HOME}/.krew/bin\"" > /home/${USER}/.bashrc 
-  - reboot now
-final_message: "Installation Completed."
+
 EOF
 
 log " - Done."
