@@ -22,11 +22,8 @@ users:
     passwd: ${PASSWD}
     ssh_authorized_keys:
       - ${VM_KEY}
-package_update: true
-packages:
-  - curl
-  - docker.io
-  - wget
+package_update: false
+package_upgrade: false
 runcmd:
   - sed -i -e '/^Port/s/^.*$/Port 22/' /etc/ssh/sshd_config
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
