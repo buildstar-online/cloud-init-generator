@@ -2,6 +2,9 @@
 
 This script will quickly modify a cloud-init user-data template that can be used to provision VMs and Metal. 
 
+- [Cloud-Init Official Docs](https://cloudinit.readthedocs.io/en/latest/)
+- [Extra examples from Canonical](https://github.com/canonical/cloud-init/tree/main/doc/examples)
+
 ## Basic Usage
 
 ```bash
