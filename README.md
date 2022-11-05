@@ -28,8 +28,10 @@ Cloud-Init Docs:
 ## Basic Usage
 
 ```bash
-
-./cigen.sh --update --upgrade \
+docker build -t cigen . && \
+docker run -it -v $(pwd):/cloud-init-generator \
+  --user $(id -u):$(id -g) cigen \
+  ./cigen.sh --update --upgrade \
   --password "S0m3P@ssw0Rd!" \
   --github-username "cloudymax" \
   --username "cloudymax" \

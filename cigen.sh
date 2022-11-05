@@ -132,7 +132,7 @@ create_ssh_key(){
   log "🔐 Create an SSH key for the VM admin user"
 
   yes |ssh-keygen -C "$VM_ADMIN" \
-    -f "${VM_ADMIN}" \
+    -f "output/${VM_ADMIN}" \
     -N '' \
     -t rsa 1> /dev/null
 
@@ -166,14 +166,14 @@ create_user_data(){
 log "📝 Creating user-data file"
 
 VALUES=$(envsubst < ${TEMPLATE})
-echo -e "$VALUES" > user-data.yaml
+echo -e "$VALUES" > output/user-data.yaml
 
 log "📝 Checking against the cloud-inint schema..."
 
 RESULT=$(cloud-init schema --config-file user-data.yaml)
 log "$RESULT"
 
-#cat user-data.yaml
+/usr/bin/cat output/user-data.yaml
 
 log " - Done."
 }
@@ -199,4 +199,5 @@ verify_deps
 clone_community_templates
 parse_params "$@"
 main
+rm -rf cigen-community-templates
 
