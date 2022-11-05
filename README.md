@@ -34,7 +34,7 @@ Cloud-Init Docs:
   --github-username "cloudymax" \
   --username "cloudymax" \
   --vm-name "cloudyboi" \
-  --template "slim.yaml"
+  --template "cigen-community-templates/slim.yaml"
 ```
 
 ## Advanced Usage with Extra Vars
@@ -51,7 +51,7 @@ Example:
   --github-username "cloudymax" \
   --username "cloudymax" \
   --vm-name "cloudyboi" \
-  --template "scrap-metal-auto-install.yaml" \
+  --template "cigen-community-templates/scrap-metal-auto-install.yaml" \
   --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
 ```
 

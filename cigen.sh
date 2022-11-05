@@ -165,7 +165,7 @@ clone_community_templates(){
 create_user_data(){
 log "📝 Creating user-data file"
 
-VALUES=$(envsubst < $REPO_NAME/${TEMPLATE})
+VALUES=$(envsubst < ${TEMPLATE})
 echo -e "$VALUES" > user-data.yaml
 
 log "📝 Checking against the cloud-inint schema..."
