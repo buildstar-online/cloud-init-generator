@@ -1,0 +1,3 @@
+[submodule "cigen-community-templates"]
+	path = cigen-community-templates
+	url = https://github.com/cloudymax/cigen-community-templates.git
