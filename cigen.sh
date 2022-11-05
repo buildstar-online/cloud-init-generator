@@ -21,7 +21,7 @@ parse_params() {
                         export PASSWD=$(mkpasswd -m sha-512 --rounds=4096 \
                             "${2-}" -s "saltsaltlettuce")
                         shift
-                        ;;
+                            ;;
                 -u | --username)
                         export USERNAME="${2-}"
                         shift
@@ -81,8 +81,6 @@ parse_params() {
         fi
 
         export VM_ADMIN="${VM_NAME}admin"
-
-
         return 0
 }
 
@@ -150,10 +148,24 @@ verify_deps(){
     log " - All required utilities are installed."
 }
 
+clone_community_templates(){
+    REPO_NAME="cigen-community-templates"
+    REPO_URL="https://github.com/cloudymax/cigen-community-templates.git"
+    CURRENT_DIR=$(pwd)
+    if [ ! -d $REPO_NAME ]
+    then
+        git clone $REPO_URL $REPO_NAME
+    else
+        cd $REPO_NAME
+        git pull
+        cd $CURRENT_DIR
+    fi
+}
+
 create_user_data(){
 log "📝 Creating user-data file"
 
-VALUES=$(envsubst < templates/${TEMPLATE})
+VALUES=$(envsubst < $REPO_NAME/${TEMPLATE})
 echo -e "$VALUES" > user-data.yaml
 
 log "📝 Checking against the cloud-inint schema..."
@@ -184,6 +196,7 @@ create_user_data
 }
 
 verify_deps
+clone_community_templates
 parse_params "$@"
 main
 
