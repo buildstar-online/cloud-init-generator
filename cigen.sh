@@ -175,7 +175,7 @@ log "📝 Checking against the cloud-inint schema..."
 RESULT=$(cloud-init schema --config-file user-data.yaml)
 log "$RESULT"
 
-if [ "$RESULT" != "Valid cloud-config: user-data.yaml" ];
+if [ "$RESULT" != "Valid cloud-config: user-data.yaml" ]; then
     log "user-data.yaml failed validation with error: $RESULT"
     exit
 fi
