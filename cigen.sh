@@ -165,15 +165,33 @@ clone_community_templates(){
 create_user_data(){
 log "📝 Creating user-data file"
 
+/usr/bin/cat ${TEMPLATE}
+
+sleep 3
+
 VALUES=$(envsubst < ${TEMPLATE})
-echo -e "$VALUES" > output/user-data.yaml
+echo -e "$VALUES" > user-data.yaml
+
+sleep 3
 
 log "📝 Checking against the cloud-inint schema..."
 
 RESULT=$(cloud-init schema --config-file user-data.yaml)
 log "$RESULT"
 
-/usr/bin/cat output/user-data.yaml
+sleep 3
+
+/usr/bin/cat user-data.yaml
+
+sleep 3
+
+ls user-data.yaml
+
+sleep 3
+
+mv user-data.yaml /output/user-data.yaml
+
+sleep 3
 
 log " - Done."
 }
