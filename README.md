@@ -2,57 +2,6 @@
 
 Cigen is a small bash script that will populate a templated Cloud-Init `user-data` file using [envsubst](https://linux.die.net/man/1/envsubst).
 
-Cloud-Init officially supports 8 OSs - Ubuntu, Arch Linux, CentOS, Red Hat, FreeBSD, Fedora, Gentoo Linux, and openSUSE. These examples have been developed and tested for use with Ubuntu.
-
-## Basic Usage
-
-```bash
-docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
-    -v $(pwd):/output cigen \
-    ./cigen.sh --update --upgrade \
-    --password "${PASSWD}" \
-    --github-username "${GITHUB_USER}" \
-    --username "${USER}" \
-    --vm-name "${VM_NAME}"
-```
-
-## Advanced Usage with Extra Vars
-
-Some templates will require additional variabels aside from those specified in the --help.
-To supply extra variables used the `-e` or `--extra-vars` flag and provide the extra values as a comma-separated list of Key-Value-Pairs represented as strings without linebreaks or spaces between them.
-
-Example:
-
-```bash
-docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
-    -v $(pwd):/output cigen \
-    ./cigen.sh --update --upgrade \
-    --password "${PASSWD}" \
-    --github-username "${GITHUB_USER}" \
-    --username "${USER}" \
-    --vm-name "${VM_NAME}" \
-    --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
-```
-
-Use on bare-metal:
-- [PXEless](https://github.com/cloudymax/pxeless)
-
-On self-hosted VMs:
-- [Scrap-Metal](https://github.com/cloudymax/Scrap-Metal)
-- [Multipass](https://ubuntu.com/blog/using-cloud-init-with-multipass)
-
-Or via Terraform on most major clouds:
-- [Equinix Metal](https://registry.terraform.io/providers/equinix/equinix/latest/docs/resources/equinix_metal_device)
-- [AWS EC2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
-- [Azure Compute](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine)
-- [Digital Ocean Droplets](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs/resources/droplet)
-- [Google Compute Engine (as metadata field)](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance)
-- [Terraform templating module for cloud-init](https://registry.terraform.io/providers/hashicorp/cloudinit/2.2.0)
-
-Cloud-Init Docs:
-- [Cloud-Init Official Docs](https://cloudinit.readthedocs.io/en/latest/)
-- [Extra examples from Canonical](https://github.com/canonical/cloud-init/tree/main/doc/examples)
-
 ## Options
 
 ```bash
@@ -88,6 +37,59 @@ Available options:
                         Key-Value-Pairs separated via commas.
                         Example: -e "VAR0='some string'","VAR1=$(pwd)"
 ```
+
+## Basic Usage
+
+```bash
+docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
+    -v $(pwd):/output cigen \
+    ./cigen.sh --update --upgrade \
+    --password "${PASSWD}" \
+    --github-username "${GITHUB_USER}" \
+    --username "${USER}" \
+    --vm-name "${VM_NAME}"
+```
+
+## Advanced Usage with Extra Vars
+
+Some templates will require additional variabels aside from those specified in the --help.
+To supply extra variables used the `-e` or `--extra-vars` flag and provide the extra values as a comma-separated list of Key-Value-Pairs represented as strings without linebreaks or spaces between them.
+
+Example:
+
+```bash
+docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
+    -v $(pwd):/output cigen \
+    ./cigen.sh --update --upgrade \
+    --password "${PASSWD}" \
+    --github-username "${GITHUB_USER}" \
+    --username "${USER}" \
+    --vm-name "${VM_NAME}" \
+    --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
+```
+
+## Why Cloud-Init?
+
+Cloud-Init officially supports 8 OSs - Ubuntu, Arch Linux, CentOS, Red Hat, FreeBSD, Fedora, Gentoo Linux, and openSUSE. These examples have been developed and tested for use with Ubuntu.
+
+Use on bare-metal:
+- [PXEless](https://github.com/cloudymax/pxeless)
+
+On self-hosted VMs:
+- [Scrap-Metal](https://github.com/cloudymax/Scrap-Metal)
+- [Multipass](https://ubuntu.com/blog/using-cloud-init-with-multipass)
+
+Or via Terraform on most major clouds:
+- [Equinix Metal](https://registry.terraform.io/providers/equinix/equinix/latest/docs/resources/equinix_metal_device)
+- [AWS EC2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
+- [Azure Compute](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine)
+- [Digital Ocean Droplets](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs/resources/droplet)
+- [Google Compute Engine (as metadata field)](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance)
+- [Terraform templating module for cloud-init](https://registry.terraform.io/providers/hashicorp/cloudinit/2.2.0)
+
+Cloud-Init Docs:
+- [Cloud-Init Official Docs](https://cloudinit.readthedocs.io/en/latest/)
+- [Extra examples from Canonical](https://github.com/canonical/cloud-init/tree/main/doc/examples)
 
 ## Debugging 
 
