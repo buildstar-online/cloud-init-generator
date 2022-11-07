@@ -136,8 +136,6 @@ verify_deps(){
 create_user_data(){
 log "📝 Creating user-data file"
 
-#/usr/bin/cat ${TEMPLATE}
-
 VALUES=$(envsubst < ${TEMPLATE})
 echo -e "$VALUES" > user-data.yaml
 
@@ -145,13 +143,12 @@ log "📝 Checking against the cloud-inint schema..."
 
 RESULT=$(cloud-init schema --config-file user-data.yaml)
 log "$RESULT"
+mv user-data.yaml /output/user-data.yaml
 
 if [ "$RESULT" != "Valid cloud-config: user-data.yaml" ]; then
     log "user-data.yaml failed validation with error: $RESULT"
     exit
 fi
-
-mv user-data.yaml /output/user-data.yaml
 
 log " - Done."
 }
