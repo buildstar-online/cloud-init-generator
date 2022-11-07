@@ -9,15 +9,13 @@ Cloud-Init officially supports 8 OSs - Ubuntu, Arch Linux, CentOS, Red Hat, Free
 ## Basic Usage
 
 ```bash
-docker build -t cigen . && \
-docker run -it -v $(pwd):/cloud-init-generator \
-  --user $(id -u):$(id -g) cigen \
-  ./cigen.sh --update --upgrade \
-  --password "S0m3P@ssw0Rd!" \
-  --github-username "cloudymax" \
-  --username "cloudymax" \
-  --vm-name "cloudyboi" \
-  --template "/path/to/template.yaml"
+docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
+    -v $(pwd):/output cigen \
+    ./cigen.sh --update --upgrade \
+    --password "${PASSWD}" \
+    --github-username "${GITHUB_USER}" \
+    --username "${USER}" \
+    --vm-name "${VM_NAME}"
 ```
 
 Use on bare-metal:
