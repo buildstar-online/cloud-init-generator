@@ -52,7 +52,8 @@ GITHUB_USER="some-gh-user"
 USER="some-user"
 VM_NAME="testmv"
 
-docker run -it -v "slim.yaml":/cloud-init-template.yaml \
+docker build -t cigen . && \
+docker run -it -v $(pwd)/slim.yaml:/cloud-init-template.yaml \
     -v $(pwd):/output cigen \
     ./cigen.sh --update --upgrade \
     --password "${PASSWD}" \
