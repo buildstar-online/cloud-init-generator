@@ -61,6 +61,11 @@ To supply extra variables used the `-e` or `--extra-vars` flag and provide the e
 Example:
 
 ```bash
+PASSWD="SomeP@ssw0rd!"
+GITHUB_USER="some-gh-user"
+USER="some-user"
+VM_NAME="testmv"
+
 docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
     -v $(pwd):/output cigen \
     ./cigen.sh --update --upgrade \
