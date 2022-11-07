@@ -127,39 +127,10 @@ EOF
         exit
 }
 
-# create a ssh key for the user and save as a file w/ prompt
-create_ssh_key(){
-  log "🔐 Create an SSH key for the VM admin user"
-
-  yes |ssh-keygen -C "$VM_ADMIN" \
-    -f "output/${VM_ADMIN}" \
-    -N '' \
-    -t rsa 1> /dev/null
-
-  export VM_KEY_FILE=$(find "$(cd ..; pwd)" -name "${VM_ADMIN}")
-  export VM_KEY=$(cat "${VM_KEY_FILE}".pub)
-  log " - Done."
-
-}
-
 verify_deps(){
     log "🔎 Checking for required utilities..."
     [[ ! -x "$(command -v whois)" ]] && die "💥 whois is not installed. On Ubuntu, install  the 'whois' package."
     log " - All required utilities are installed."
-}
-
-clone_community_templates(){
-    REPO_NAME="cigen-community-templates"
-    REPO_URL="https://github.com/cloudymax/cigen-community-templates.git"
-    CURRENT_DIR=$(pwd)
-    if [ ! -d $REPO_NAME ]
-    then
-        git clone $REPO_URL $REPO_NAME
-    else
-        cd $REPO_NAME
-        git pull
-        cd $CURRENT_DIR
-    fi
 }
 
 create_user_data(){
@@ -180,10 +151,6 @@ if [ "$RESULT" != "Valid cloud-config: user-data.yaml" ]; then
     exit
 fi
 
-#/usr/bin/cat user-data.yaml
-
-#ls user-data.yaml
-
 mv user-data.yaml /output/user-data.yaml
 
 log " - Done."
@@ -201,14 +168,8 @@ die() {
         exit "${CODE}"
 }
 
-main(){
-create_ssh_key
-create_user_data
-}
-
 verify_deps
 clone_community_templates
 parse_params "$@"
-main
-rm -rf cigen-community-templates
+create_user_data
 
