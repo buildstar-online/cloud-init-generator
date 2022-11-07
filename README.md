@@ -43,12 +43,16 @@ Available options:
 ## Basic Usage
 
 ```bash
+
+# Downloading a template from the community repo
+wget -O slim.yaml https://raw.githubusercontent.com/cloudymax/cigen-community-templates/main/slim.yaml
+
 PASSWD="SomeP@ssw0rd!"
 GITHUB_USER="some-gh-user"
 USER="some-user"
 VM_NAME="testmv"
 
-docker run -it -v "/path/to/your/template.yaml":/cloud-init-template.yaml \
+docker run -it -v "slim.yaml":/cloud-init-template.yaml \
     -v $(pwd):/output cigen \
     ./cigen.sh --update --upgrade \
     --password "${PASSWD}" \
