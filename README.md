@@ -43,13 +43,14 @@ Available options:
 ## Basic Usage
 
 ```bash
-docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
+docker run -it -v "/path/to/your/template.yaml":/cloud-init-template.yaml \
     -v $(pwd):/output cigen \
     ./cigen.sh --update --upgrade \
     --password "${PASSWD}" \
     --github-username "${GITHUB_USER}" \
     --username "${USER}" \
-    --vm-name "${VM_NAME}"
+    --vm-name "${VM_NAME}" \
+    --template "/cloud-init-template.yaml"
 ```
 
 ## Advanced Usage with Extra Vars
