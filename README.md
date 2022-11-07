@@ -1,8 +1,6 @@
 # Cloud-Init Generator (cigen)
 
-** Work in progress**
-
-`cigen.sh` will fill in a Cloud-Init `user-data` template that can be used to provision local or cloud-based VMs and Metal. 
+Cigen is a small bash script that will populate a templated Cloud-Init `user-data` file using [envsubst](https://linux.die.net/man/1/envsubst).
 
 Cloud-Init officially supports 8 OSs - Ubuntu, Arch Linux, CentOS, Red Hat, FreeBSD, Fedora, Gentoo Linux, and openSUSE. These examples have been developed and tested for use with Ubuntu.
 
@@ -16,6 +14,24 @@ docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
     --github-username "${GITHUB_USER}" \
     --username "${USER}" \
     --vm-name "${VM_NAME}"
+```
+
+## Advanced Usage with Extra Vars
+
+Some templates will require additional variabels aside from those specified in the --help.
+To supply extra variables used the `-e` or `--extra-vars` flag and provide the extra values as a comma-separated list of Key-Value-Pairs represented as strings without linebreaks or spaces between them.
+
+Example:
+
+```bash
+docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
+    -v $(pwd):/output cigen \
+    ./cigen.sh --update --upgrade \
+    --password "${PASSWD}" \
+    --github-username "${GITHUB_USER}" \
+    --username "${USER}" \
+    --vm-name "${VM_NAME}" \
+    --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
 ```
 
 Use on bare-metal:
@@ -36,24 +52,6 @@ Or via Terraform on most major clouds:
 Cloud-Init Docs:
 - [Cloud-Init Official Docs](https://cloudinit.readthedocs.io/en/latest/)
 - [Extra examples from Canonical](https://github.com/canonical/cloud-init/tree/main/doc/examples)
-
-## Advanced Usage with Extra Vars
-
-Some templates will require additional variabels aside from those specified in the --help.
-To supply extra variables used the `-e` or `--extra-vars` flag and provide the extra values as a comma-separated list of Key-Value-Pairs represented as strings without linebreaks or spaces between them.
-
-Example:
-
-```bash
-
-./cigen.sh --update --upgrade \
-  --password "S0m3P@ssw0Rd!" \
-  --github-username "cloudymax" \
-  --username "cloudymax" \
-  --vm-name "cloudyboi" \
-  --template "cigen-community-templates/scrap-metal-auto-install.yaml" \
-  --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
-```
 
 ## Options
 
