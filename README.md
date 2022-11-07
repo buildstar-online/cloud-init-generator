@@ -6,6 +6,20 @@
 
 Cloud-Init officially supports 8 OSs - Ubuntu, Arch Linux, CentOS, Red Hat, FreeBSD, Fedora, Gentoo Linux, and openSUSE. These examples have been developed and tested for use with Ubuntu.
 
+## Basic Usage
+
+```bash
+docker build -t cigen . && \
+docker run -it -v $(pwd):/cloud-init-generator \
+  --user $(id -u):$(id -g) cigen \
+  ./cigen.sh --update --upgrade \
+  --password "S0m3P@ssw0Rd!" \
+  --github-username "cloudymax" \
+  --username "cloudymax" \
+  --vm-name "cloudyboi" \
+  --template "/path/to/template.yaml"
+```
+
 Use on bare-metal:
 - [PXEless](https://github.com/cloudymax/pxeless)
 
@@ -24,20 +38,6 @@ Or via Terraform on most major clouds:
 Cloud-Init Docs:
 - [Cloud-Init Official Docs](https://cloudinit.readthedocs.io/en/latest/)
 - [Extra examples from Canonical](https://github.com/canonical/cloud-init/tree/main/doc/examples)
-
-## Basic Usage
-
-```bash
-docker build -t cigen . && \
-docker run -it -v $(pwd):/cloud-init-generator \
-  --user $(id -u):$(id -g) cigen \
-  ./cigen.sh --update --upgrade \
-  --password "S0m3P@ssw0Rd!" \
-  --github-username "cloudymax" \
-  --username "cloudymax" \
-  --vm-name "cloudyboi" \
-  --template "cigen-community-templates/slim.yaml"
-```
 
 ## Advanced Usage with Extra Vars
 
