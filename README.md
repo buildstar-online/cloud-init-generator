@@ -1,6 +1,6 @@
 # Cloud-Init Generator (cigen)
 
-Cigen is a small bash script that will populate a templated Cloud-Init `user-data` file using [envsubst](https://linux.die.net/man/1/envsubst).
+Cigen is a small bash script that will populate a templated Cloud-Init `user-data` file using [envsubst](https://linux.die.net/man/1/envsubst). A small selection of templates for use with Cigen are maintained at [cigen-community-templates](https://github.com/cloudymax/cigen-community-templates).
 
 ## Options
 
