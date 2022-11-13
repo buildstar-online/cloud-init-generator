@@ -166,7 +166,6 @@ die() {
 }
 
 verify_deps
-clone_community_templates
 parse_params "$@"
 create_user_data
 
