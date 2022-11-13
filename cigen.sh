@@ -18,9 +18,8 @@ parse_params() {
                         shift
                         ;;
                 -p | --password)
-                        HASH=$(mkpasswd -m sha-512 --rounds=4096 \
+                        PASSWD=$(mkpasswd -m sha-512 --rounds=4096 \
                             "${2-}" -s "saltsaltlettuce")
-                        export PASSWD=$(echo "${HASH}" | sed 's/\$/\\$/g')
                         shift
                             ;;
                 -u | --username)
