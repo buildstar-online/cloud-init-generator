@@ -1,6 +1,6 @@
 #!/bin/bash
 ##########################################################################
-# Simple template modification script to customize cloud-init user-data 
+# Simple template modification script to customize cloud-init user-data
 # cloud-init logs are in /run/cloud-init/result.json
 # <3 max
 #########################################################################
@@ -13,13 +13,14 @@ parse_params() {
                 -v | --verbose) set -x ;;
                 -upd | --update) export UPDATE="true" ;;
                 -upg | --upgrade) export UPGRADE="true" ;;
-                -t | --template) 
-                        export TEMPLATE="${2-}" 
+                -t | --template)
+                        export TEMPLATE="${2-}"
                         shift
                         ;;
                 -p | --password)
-                        export PASSWD=$(mkpasswd -m sha-512 --rounds=4096 \
+                        HASH=$(mkpasswd -m sha-512 --rounds=4096 \
                             "${2-}" -s "saltsaltlettuce")
+                        export PASSWD=$(echo "${HASH}" | sed 's/\$/\\$/g')
                         shift
                             ;;
                 -u | --username)
@@ -35,7 +36,7 @@ parse_params() {
                         shift
                         ;;
                 -e | --extra-vars)
-                        IFS=',' 
+                        IFS=','
                         read -r -a VAR_ARRAY <<< "${2-}"
                         for ELEMENT in "${VAR_ARRAY[@]}"
                         do
@@ -107,7 +108,7 @@ Available options:
                         Templates are located in the templates directory.
                         Defaults to 'slim.yaml' if no value specified.
 
--p, --password          Password to set up for the VM Users. 
+-p, --password          Password to set up for the VM Users.
                         Defaults to 'password' if no value is specified
 
 -u, --username          Username for non-system account
@@ -115,11 +116,11 @@ Available options:
 
 -gh, --github-username  (Optional) Github username from which to pull public keys
 
--n, --vm-name           Hostname/name for the Virtual Machine. Influences the 
+-n, --vm-name           Hostname/name for the Virtual Machine. Influences the
                         name of the syste account - no special chars plz.
 
 -e, --extra-vars        Some templates will require extra values.
-                        Use this option to supply these values as 
+                        Use this option to supply these values as
                         Key-Value-Pairs separated via commas.
                         Example: -e "VAR0='some string'","VAR1=$(pwd)"
 
@@ -168,4 +169,3 @@ die() {
 verify_deps
 parse_params "$@"
 create_user_data
-
