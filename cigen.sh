@@ -18,7 +18,7 @@ parse_params() {
                         shift
                         ;;
                 -p | --password)
-                        PASSWORD=$(mkpasswd -m sha-512 --rounds=4096 \
+                        export PASSWORD=$(mkpasswd -m sha-512 --rounds=4096 \
                             "${2-}" -s "saltsaltlettuce")
                         shift
                             ;;
@@ -72,7 +72,7 @@ parse_params() {
         fi
 
         if [ ! $PASSWORD ]; then
-            PASSWORD=$(mkpasswd -m sha-512 --rounds=4096 \
+            export PASSWORD=$(mkpasswd -m sha-512 --rounds=4096 \
                 "password" -s "saltsaltlettuce")
         fi
 
