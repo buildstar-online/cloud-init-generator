@@ -18,7 +18,7 @@ parse_params() {
                         shift
                         ;;
                 -p | --password)
-                        PASSWD=$(mkpasswd -m sha-512 --rounds=4096 \
+                        PASSWORD=$(mkpasswd -m sha-512 --rounds=4096 \
                             "${2-}" -s "saltsaltlettuce")
                         shift
                             ;;
