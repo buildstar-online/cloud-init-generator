@@ -1,7 +1,6 @@
 name: ci
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - 'main'
@@ -10,8 +9,6 @@ on:
   pull_request:
     branches:
       - 'main'
-  release:
-    types: [published]
 
 jobs:
   docker:
