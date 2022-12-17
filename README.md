@@ -1,4 +1,4 @@
-# Cigen [![GitHub Release](https://img.shields.io/github/v/release/cloudymax/cloud-init-generator?style=flat&labelColor=858585&color=6BF847&logo=GitHub&logoColor=white)](https://github.com/cloudymax/cloud-init-generator/releases)
+# Cloud-Init Generator [![GitHub Release](https://img.shields.io/github/v/release/cloudymax/cloud-init-generator?style=flat&labelColor=858585&color=6BF847&logo=GitHub&logoColor=white)](https://github.com/cloudymax/cloud-init-generator/releases)
 
 Cigen is a small bash script that will populate a templated Cloud-Init `user-data` file using [envsubst](https://linux.die.net/man/1/envsubst). It is integrated with [Scrap-Metal](https://github.com/cloudymax/Scrap-Metal) as the primary tool for boot-strapping user-data files for cloud-image based virtual-machines.
 
