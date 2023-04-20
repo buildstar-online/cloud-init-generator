@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:kinetic
 
 ENV NONINTERACTIVE=1
 ENV DEBIAN_FRONTEND=noninteractive
