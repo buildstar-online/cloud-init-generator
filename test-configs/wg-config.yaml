@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = sdasdasdasdasdasdasdasdasd
+Address = 10.1.0.253/32
+MTU = 1420
+
+[Peer]
+PublicKey = asdasdasdasdasdasdasdasdasdasd
+AllowedIPs = 10.1.0.0/24, 10.1.0.1/18
+Endpoint = 192.168.0.1:51821
+PersistentKeepalive = 20

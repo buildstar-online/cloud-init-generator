@@ -13,7 +13,9 @@ RUN apt-get update \
     apt-transport-https \
     ca-certificates \
     gnupg \
-    bc
+    bc \
+    golang-petname \
+    jq
 
 RUN mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg \
@@ -35,8 +37,8 @@ RUN useradd -ms /bin/bash $USER \
 COPY ./cigen.sh /home/$USER/cigen.sh
 
 RUN chmod +x /home/$USER/cigen.sh \
-    && chown -R $USER:$USER /home/$USER \
-    && chmod -R u+rw /home/$USER
+    && sudo chown -R $USER:$USER /home/$USER \
+    && sudo chmod -R u+rw /home/$USER
 
 WORKDIR /home/$USER
 

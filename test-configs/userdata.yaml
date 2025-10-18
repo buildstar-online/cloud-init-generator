@@ -1,0 +1,50 @@
+#cloud-config
+hostname: random
+disable_root: false
+network:
+  config: disabled
+wireguard:
+  interfaces:
+    - name: wg0
+      config_path: /etc/wireguard/wg0.conf
+      source: file
+      path: /configs/wg-config.yaml
+    - name: wg1
+      config_path: /etc/wireguard/wg0.conf
+      source: content
+      content: |
+        [Interface]
+        PrivateKey = sdasdasdasdasdasdasdasdasd
+        Address = 10.1.0.253/32
+        MTU = 1420
+
+        [Peer]
+        PublicKey = asdasdasdasdasdasdasdasdasdasd
+        AllowedIPs = 10.1.0.0/24, 10.1.0.1/18
+        Endpoint = 192.168.0.1:51821
+        PersistentKeepalive = 20
+users:
+  - name: $USERNAME
+    groups: users, admin, docker, sudo, kvm
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: random
+  - name: operator
+    groups: users, admin, docker, sudo, kvm
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    passwd:
+write_files:
+  - path: /home/${USERNAME}/runner.sh
+    permissions: "0644"
+    url: "https://raw.githubusercontent.com/small-hack/smol-metal/refs/heads/main/gha-runner.sh"
+package_reboot_if_required: false
+package_update: true
+package_upgrade: false
+packages:
+  - curl
+  - tmux
+runcmd:
+  - mkdir -p /home/${USERNAME}/shared

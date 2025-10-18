@@ -16,11 +16,13 @@ trap - SIGINT SIGTERM ERR EXIT
 
 # Default Variable Declarations
 export ENVSUBST="false"
-export WIREGUARD_PATH=""
 export USER_DATA_SECRET_PATH=""
-export USER_DATA_PATH="/tmp/user-data.yaml"
+export USER_DATA_PATH="user-data.yaml"
 export SALT="saltsaltlettuce"
 export QUIET="false"
+export NETWORK_DATA_SECRET_PATH=""
+export NETWORK_DATA_PATH="network-data.yaml"
+export NETWORK_DATA_PRESENT="false"
 
 # Parse and validate user inputs.
 parse_params() {
@@ -38,11 +40,11 @@ parse_params() {
                         export USER_DATA_SECRET_PATH="${2-}"
                         shift
                         ;;
-                -wg | --wireguard-config)
-                        export WIREGUARD_PATH="${2-}"
+                -n | --networkdata)
+                        export NETWORK_DATA_SECRET_PATH="${2-}"
+                        export NETWORK_DATA_PRESENT="true"
                         shift
                         ;;
-
 
                -?*) die "Unknown option: $1" ;;
                 *) break ;;
@@ -66,11 +68,11 @@ Available options:
 
 -u, --userdata          Path to cloud-init user-data file (required)
 
+-n, --networkdata       Path to cloud-init networkdata file (optional)
+
 -e, --envsubst          Enable usage of envsubst, disabled by default (optional)
 
 -s, --salt              Salt to use when encrypting password (optional)
-
--w, --wireguard         Path to a Wireguard config file (optional)
 
 EOF
         exit
@@ -89,6 +91,13 @@ run_envsubst(){
         log "running envsubst against $USER_DATA_PATH..."
         envsubst < "${USER_DATA_PATH}" > /tmp/tmp.yaml
         mv /tmp/tmp.yaml "${USER_DATA_PATH}"
+
+        # if network data is present run envsubst on it
+        if [ "${NETWORK_DATA_PRESENT}" == "true" ]; then
+            log "running envsubst against $NETWORK_DATA_PATH... \n"
+            envsubst < "${NETWORK_DATA_PATH}" > tmp.yaml
+            mv tmp.yaml "${NETWORK_DATA_PATH}"
+        fi
     fi
 }
 
@@ -97,18 +106,55 @@ admin_password(){
     read -ra users <<< $(yq '.users[].name' $USER_DATA_PATH |xargs)
     export COUNT=0
 
+    # Get the list of users
     for user in "${users[@]}"; do
-        CHECK=$(yq '.users[env(COUNT)].passwd' $USER_DATA_PATH)
-        if [ "${CHECK}" != "null" ]; then
-            log "Setting hashed password for user: $user"
-            CAP_USER=$(echo "${user}" | tr '[:lower:]' '[:upper:]')
-            PASSWORD=$(env |grep "${CAP_USER}_PASSWORD" |cut -d '=' -f2)
-            export HASHED_PASSWORD=$(mkpasswd --method=SHA-512 --rounds=4096 "${PASSWORD}" -s "${SALT}")
-            yq -i '.users[env(COUNT)].passwd = env(HASHED_PASSWORD)' $USER_DATA_PATH
+        CHECK=$(yq '.users[env(COUNT)].passwd' $USER_DATA_PATH | tr '[:lower:]' '[:upper:]')
+
+        # Check if we need to generate a random password
+        if [ "${CHECK}" == "RANDOM" ]; then
+            log "Generating a random password for user: ${user}."
+            export PASSWORD=$(random_password)
+        else
+            # If passwd is empty, its probably a env var
+            if [ -z "${CHECK}" ]; then
+                log "Looking for password of user: $user in env vars"
+                CAP_USER=$(echo "${user}" | tr '[:lower:]' '[:upper:]')
+                export PASSWORD=$(env |grep "${CAP_USER}_PASSWORD" |cut -d '=' -f2)
+
+                # If we still cant find it, throw and error and exit
+                if [ -z $PASSWORD ]; then
+                    log "No password found for user $user in env vars. Exiting."
+                    exit 1
+                fi
+            fi
         fi
+
+        log "Setting hashed password for user: $user"
+        export HASHED_PASSWORD=$(mkpasswd --method=SHA-512 --rounds=4096 "${PASSWORD}" -s "${SALT}")
+        yq -i '.users[env(COUNT)].passwd = env(HASHED_PASSWORD)' $USER_DATA_PATH
         export COUNT=$(($COUNT + 1))
     done
 }
+
+random_password(){
+    INPUT=$(golang-petname --words 2)
+    OUTPUT=""
+    LENGTH=${#INPUT}
+
+    for (( i=0; i<LENGTH; i++ )); do
+      char="${INPUT:$i:1}"
+      if (( RANDOM % 2 == 0 )); then
+        # Convert to uppercase
+        OUTPUT+="$(echo "$char" | tr '[:lower:]' '[:upper:]')"
+      else
+        # Convert to lowercase
+        OUTPUT+="$(echo "$char" | tr '[:upper:]' '[:lower:]')"
+      fi
+    done
+
+    echo "$OUTPUT-$RANDOM"
+}
+
 
 # Download, gzip, then b64 encode files from specified URLs
 download_files(){
@@ -134,7 +180,7 @@ check_size(){
     export SIZE=$(stat -c%s $USER_DATA_PATH)
     export REMAINDER=$((16000 - $SIZE))
     export FULL=$(echo "scale=2; 100-(($REMAINDER/16000)*100)" |bc -l)
-    log "  - user-data file is $SIZE bytes - $FULL% of 16Kb limit."
+    log "user-data file is $SIZE bytes - $FULL% of 16Kb limit."
     if [[ $SIZE -gt 16000 ]]; then
         echo "Warn: user-data file exceeds the 16KB limit"
     fi
@@ -147,24 +193,50 @@ validate(){
     log "  - $CONFIG_VALID"
 }
 
-# Add wireguard configs from secrets
+# Add wireguard configs from file or in-cline config
 wireguard(){
     read -ra interfaces <<< $(yq '.wireguard.interfaces[].name' "${USER_DATA_PATH}" |xargs)
     export COUNT=0
 
     for interface in "${interfaces[@]}"; do
+        # Get if source is file or content
         if [ "${interface}" != "null" ]; then
-            log "Adding wireguard interface ${interface}"
-            IFS= read -rd '' output < <(/bin/cat "${interface}".conf)
-            output=$output yq -i '.wireguard.interfaces[env(COUNT)].content = strenv(output)' $USER_DATA_PATH
+            SOURCE=$(yq '.wireguard.interfaces[env(COUNT)].source' "${USER_DATA_PATH}")
+
+            # if the config is in a file
+            if [ "$SOURCE" == "file" ]; then
+                export WG_PATH=$(yq '.wireguard.interfaces[env(COUNT)].path' "${USER_DATA_PATH}")
+                export OUTPUT=$(/bin/cat "${WG_PATH}")
+
+                log "Adding wireguard interface ${interface}"
+                yq -i '.wireguard.interfaces[env(COUNT)].content = strenv(OUTPUT)' $USER_DATA_PATH
+                yq -i '.wireguard.interfaces[env(COUNT)] |= (del(.source))' $USER_DATA_PATH
+                yq -i '.wireguard.interfaces[env(COUNT)] |= (del(.path))' $USER_DATA_PATH
+            fi
+
+            # if the config is in-line content
+            if [ "$SOURCE" == "content" ]; then
+                export CONTENT=$(yq '.wireguard.interfaces[env(COUNT)].content' "${USER_DATA_PATH}")
+
+                log "Adding wireguard interface ${interface}"
+                yq -i '.wireguard.interfaces[env(COUNT)].content = strenv(CONTENT)' $USER_DATA_PATH
+                yq -i '.wireguard.interfaces[env(COUNT)] |= (del(.source))' $USER_DATA_PATH
+            fi
         fi
+
         export COUNT=$(($COUNT + 1))
     done
 }
 
 # Generic logging method to return a timestamped string
 log() {
-    echo >&2 -e "[$(date +"%Y-%m-%d %H:%M:%S")] ${1-}" >> /tmp/log.txt
+    if [ "${QUIET}" == "true" ]; then
+        echo >&2 -e "{ \"date\": \"$(date +"%Y-%m-%d %H:%M:%S")\", \"message\": \"${1-}\"}" >> /tmp/log.txt
+    fi
+
+    if [ "${QUIET}" == "false" ]; then
+        echo >&2 -e "{\"date\": \"$(date +"%Y-%m-%d %H:%M:%S")\", \"message\": \"${1-}\"}"
+    fi
 }
 
 # kill on error
@@ -180,7 +252,6 @@ die() {
 
 # Main Application Loop
 main(){
-
     # Check and validate inputs
     parse_params $@
 
@@ -188,6 +259,7 @@ main(){
 
     # Copy read-only file to an editable version
     cp $USER_DATA_SECRET_PATH $USER_DATA_PATH
+    cp $NETWORK_DATA_SECRET_PATH $NETWORK_DATA_PATH
 
     # Check the initial size of the cloud-init config
     check_size
@@ -208,12 +280,12 @@ main(){
     validate
 
     # Do a final size check of our modified config file
-    check_size
+    #check_size
 
     # Move the final file to the output directory
     #log "Optimized file saved to /output/user-data.yaml"
     #cp $USER_DATA_PATH /ouput/user-data.yaml
-    cat $USER_DATA_PATH
+    cat $USER_DATA_PATH |yq
 }
 
 main $@
