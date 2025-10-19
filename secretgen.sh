@@ -71,36 +71,45 @@ secret_exists(){
 
     if [ "${SECRET_EXISTS}" -gt 0 ]; then
         log "Kubernetes secret ${SECRET_NAME} exists and will be replaced"
-        kubectl patch secret ${SECRET_NAME} -p '{"metadata":{"finalizers":null}}' --type=merge
-        kubectl delete secret ${SECRET_NAME}
+
+        RESULT=$(kubectl patch secret ${SECRET_NAME} -p '{"metadata":{"finalizers":null}}' --type=merge)
+        log "$RESULT"
+
+        RESULT=$(kubectl delete secret ${SECRET_NAME})
+        log "$RESULT"
     fi
 }
 
 cretae_userdata_secret(){
     if [ "$NETWORK_DATA_PRESENT" == "true" ]; then
         log "Creating kubernetes secret ${SECRET_NAME} from ${USER_DATA_PATH} & ${NETWORK_DATA_PATH}"
-        kubectl create secret generic ${SECRET_NAME} \
+        RESULT=$(kubectl create secret generic ${SECRET_NAME} \
             --from-file=userdata="${USER_DATA_PATH}" \
-            --from-file=networkdata="${NETWORK_DATA_PATH}"
+            --from-file=networkdata="${NETWORK_DATA_PATH}")
+        log "$RESULT"
     else
         log "Creating kubernetes secret ${SECRET_NAME} from ${USER_DATA_PATH}"
-        kubectl create secret generic ${SECRET_NAME} --from-file=userdata="${USER_DATA_PATH}"
+        RESULT=$(kubectl create secret generic ${SECRET_NAME} --from-file=userdata="${USER_DATA_PATH}")
+        log "$RESULT"
     fi
     annotate_userdata_secret
 }
 
 annotate_userdata_secret(){
     log "Adding argocd tracking annotation."
-    kubectl annotate --overwrite secret ${SECRET_NAME} \
-        argocd.argoproj.io/tracking-id="${ARGOCD_APP_NAME}:v1/Secret:${NAMESPACE}/${SECRET_NAME}"
+    RESULT=$(kubectl annotate --overwrite secret ${SECRET_NAME} \
+        argocd.argoproj.io/tracking-id="${ARGOCD_APP_NAME}:v1/Secret:${NAMESPACE}/${SECRET_NAME}")
+    log "$RESULT"
 
     log "Adding argocd sync options."
-    kubectl annotate --overwrite secret ${SECRET_NAME} \
-        argocd.argoproj.io/sync-options="Prune=false,Delete=false"
+    RESULT=$(kubectl annotate --overwrite secret ${SECRET_NAME} \
+        argocd.argoproj.io/sync-options="Prune=false,Delete=false")
+    log "$RESULT"
 
     log "Adding argocd comparison options."
-    kubectl annotate --overwrite secret ${SECRET_NAME} \
-        argocd.argoproj.io/compare-options="IgnoreExtraneous"
+    RESULT=$(kubectl annotate --overwrite secret ${SECRET_NAME} \
+        argocd.argoproj.io/compare-options="IgnoreExtraneous")
+    log "$RESULT"
 }
 
 # Generic logging method to return a timestamped string

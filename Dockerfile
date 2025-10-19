@@ -44,6 +44,6 @@ RUN chmod +x /home/$USER/cigen.sh \
 
 WORKDIR /home/$USER
 
-USER 1001
+USER 1000
 
 ENTRYPOINT [ "/bin/bash", "/home/appuser/cigen.sh" ]

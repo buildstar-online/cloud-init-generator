@@ -98,13 +98,13 @@ EOF
 # to avoid this issue.
 run_envsubst(){
     if [ "${ENVSUBST}" == "true" ]; then
-        log "running envsubst against $USER_DATA_PATH..."
+        log "running envsubst against $USER_DATA_PATH"
         envsubst < "${USER_DATA_PATH}" > /tmp/tmp.yaml
         mv /tmp/tmp.yaml "${USER_DATA_PATH}"
 
         # if network data is present run envsubst on it
         if [ "${NETWORK_DATA_PRESENT}" == "true" ]; then
-            log "running envsubst against $NETWORK_DATA_PATH... \n"
+            log "running envsubst against $NETWORK_DATA_PATH"
             envsubst < "${NETWORK_DATA_PATH}" > tmp.yaml
             mv tmp.yaml "${NETWORK_DATA_PATH}"
         fi
@@ -200,7 +200,7 @@ check_size(){
 validate(){
     log "Linting the user-data file..."
     CONFIG_VALID=$(cloud-init schema --config-file $USER_DATA_PATH)
-    log "  - $CONFIG_VALID"
+    log "$CONFIG_VALID"
 }
 
 # Add wireguard configs from file or in-cline config
@@ -298,12 +298,11 @@ main(){
     # Move the final file to the output directory
     #log "Optimized file saved to /output/user-data.yaml"
     #cp $USER_DATA_PATH /ouput/user-data.yaml
-    log "Printing final userdata:"
+    log "Printing final userdata."
     cat $USER_DATA_PATH |yq
 
-
     if [[ ! -z "$NETWORK_DATA_SECRET_PATH" ]]; then
-        log "Printing final networkdata:"
+        log "Printing final networkdata."
         cat $NETWORK_DATA_PATH |yq
     fi
 
