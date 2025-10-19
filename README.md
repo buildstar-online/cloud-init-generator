@@ -1,5 +1,8 @@
 # Cloud-Init Generator [![GitHub Release](https://img.shields.io/github/v/release/cloudymax/cloud-init-generator?style=flat&labelColor=858585&color=6BF847&logo=GitHub&logoColor=white)](https://github.com/cloudymax/cloud-init-generator/releases)
 
+- runs as user 1000
+- Logs are json format
+
 ## Options
 
 ```bash
@@ -32,7 +35,7 @@ RUNNER_PASSWORD="SomeP@ssw0rd!"
 SECRET_NAME="runner-user-data"
 
 docker build -t cigen . && \
-docker run -it -u appuser -v $(pwd)/test-configs:/configs \
+docker run -it -u 1000 -v $(pwd)/test-configs:/configs \
     -v /Users/max/.config/kube:/kube \
     --env USERNAME=$USERNAME \
     --env SECRET_NAME=$SECRET_NAME \
