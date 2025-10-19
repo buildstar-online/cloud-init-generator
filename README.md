@@ -1,84 +1,45 @@
 # Cloud-Init Generator [![GitHub Release](https://img.shields.io/github/v/release/cloudymax/cloud-init-generator?style=flat&labelColor=858585&color=6BF847&logo=GitHub&logoColor=white)](https://github.com/cloudymax/cloud-init-generator/releases)
 
-Cigen is a small bash script that will populate a templated Cloud-Init `user-data` file using [envsubst](https://linux.die.net/man/1/envsubst). It is integrated with [Scrap-Metal](https://github.com/cloudymax/Scrap-Metal) as the primary tool for boot-strapping user-data files for cloud-image based virtual-machines.
-
-A small selection of templates for use with Cigen + Scrap-Metal are maintained here: [cigen-community-templates](https://github.com/cloudymax/cigen-community-templates).
-
 ## Options
 
 ```bash
+💁 This script will quickly modify a cloud-init user-data template that can be used to provision virtual-machines, metal, and containers.
+
 Available options:
 
 -h, --help              Print this help and exit
 
 -v, --verbose           Print script debug info
 
--upd, --update          Update apt packages during provisioning
-                        Defaults to False
+-q, --quiet             Only print final userdata
 
--upg, --upg             Upgrade packages during provisioning
-                        Defaults to False
+-u, --userdata          Path to cloud-init user-data file (required)
 
--t, --template          The template to use as the base for clopud-init.
-                        Templates are located in the templates directory.
-                        Defaults to 'slim.yaml' if no value specified.
+-n, --networkdata       Path to cloud-init networkdata file (optional)
 
--p, --password          Password to set up for the VM Users. 
-                        Defaults to 'password' if no value is specified
+-k, --kubernetes        Create kubernetes secrets from user and network data (optional)
 
--u, --username          Username for non-system account
-                        Defaults to the current shell user
+-e, --envsubst          Enable usage of envsubst, disabled by default (optional)
 
--gh, --github-username  (Optional) Github username from which to pull public keys
-
--n, --vm-name           Hostname/name for the Virtual Machine. Influences the 
-                        name of the syste account - no special chars plz.
-
--e, --extra-vars        Some templates will require extra values.
-                        Use this option to supply these values as 
-                        Key-Value-Pairs separated via commas.
-                        Example: -e "VAR0='some string'","VAR1=$(pwd)"
+-s, --salt              Salt to use when encrypting password (optional)
 ```
 
 ## Basic Usage
 
 ```bash
-
-# Downloading a template from the community repo
-wget -O slim.yaml https://raw.githubusercontent.com/cloudymax/cigen-community-templates/main/slim.yaml
-
-PASSWD="SomeP@ssw0rd!"
-GITHUB_USER="some-gh-user"
-USER="some-user"
-VM_NAME="testmv"
+USERNAME="runner"
+RUNNER_PASSWORD="SomeP@ssw0rd!"
+SECRET_NAME="runner-user-data"
 
 docker build -t cigen . && \
-docker run -it -v $(pwd)/slim.yaml:/cloud-init-template.yaml \
-    -v $(pwd):/output cigen \
-    ./cigen.sh --update --upgrade \
-    --password "${PASSWD}" \
-    --github-username "${GITHUB_USER}" \
-    --username "${USER}" \
-    --vm-name "${VM_NAME}" \
-    --template "/cloud-init-template.yaml"
-```
-
-## Advanced Usage with Extra Vars
-
-Some templates will require additional variabels aside from those specified in the --help.
-To supply extra variables used the `-e` or `--extra-vars` flag and provide the extra values as a comma-separated list of Key-Value-Pairs represented as strings without linebreaks or spaces between them.
-
-Example:
-
-```bash
-docker run -it -v "/path/to/template.yaml":/cloud-init-template.yaml \
-    -v $(pwd):/output cigen \
-    ./cigen.sh --update --upgrade \
-    --password "${PASSWD}" \
-    --github-username "${GITHUB_USER}" \
-    --username "${USER}" \
-    --vm-name "${VM_NAME}" \
-    --extra-vars "INTERFACE=enp4s0","IP_ADDRESS=192.168.50.100","GATEWAY_IP=192.168.50.1","DNS_SERVER_IP=192.168.50.50","ROOT_USER=max"
+docker run -it -u appuser -v $(pwd)/test-configs:/configs \
+    -v /Users/max/.config/kube:/kube \
+    --env USERNAME=$USERNAME \
+    --env SECRET_NAME=$SECRET_NAME \
+    cigen --userdata /configs/userdata.yaml \
+    --networkdata /configs/networkdata.yaml \
+    --kubernetes \
+    --envsubst
 ```
 
 ## Why Cloud-Init?
@@ -104,7 +65,7 @@ Cloud-Init Docs:
 - [Cloud-Init Official Docs](https://cloudinit.readthedocs.io/en/latest/)
 - [Extra examples from Canonical](https://github.com/canonical/cloud-init/tree/main/doc/examples)
 
-## Debugging 
+## Debugging
 
 Docs link: https://cloudinit.readthedocs.io/en/latest/topics/debugging.html
 
@@ -129,6 +90,3 @@ If you want to debug the user-data in cloud-init, try the following steps:
   sudo cloud-init analyze dump -i /var/log/cloud-init.log
   sudo cloud-init analyze blame -i /var/log/cloud-init.log
   ```
-
-- Run single module
-  `sudo cloud-init single --name cc_ssh --frequency always`

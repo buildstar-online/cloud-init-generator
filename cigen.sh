@@ -13,6 +13,8 @@ trap - SIGINT SIGTERM ERR EXIT
 [[ ! -x "$(command -v cloud-init)" ]] && echo "💥 cloud-init command not found." && exit 1
 [[ ! -x "$(command -v wget)" ]] && echo "💥 wget command not found." && exit 1
 [[ ! -x "$(command -v curl)" ]] && echo "💥 curl command not found." && exit 1
+[[ ! -x "$(command -v yq)" ]] && echo "💥 yq command not found." && exit 1
+[[ ! -x "$(command -v golang-petname)" ]] && echo "💥 golang-petname command not found." && exit 1
 
 # Default Variable Declarations
 export ENVSUBST="false"
@@ -23,6 +25,7 @@ export QUIET="false"
 export NETWORK_DATA_SECRET_PATH=""
 export NETWORK_DATA_PATH="network-data.yaml"
 export NETWORK_DATA_PRESENT="false"
+export SECRETGEN="false"
 
 # Parse and validate user inputs.
 parse_params() {
@@ -30,8 +33,10 @@ parse_params() {
                 case "${1-}" in
                 -h | --help) usage ;;
                 -v | --verbose) set -x ;;
-                -e | --envsubst) export ENVSUBST="true" ;;
-                -q | --quiet) export QUIET="true" ;;
+                -e | --envsubst)
+                        export ENVSUBST="true" ;;
+                -q | --quiet)
+                        export QUIET="true" ;;
                 -s | --salt)
                         export SALT="${2-}"
                         shift
@@ -45,9 +50,10 @@ parse_params() {
                         export NETWORK_DATA_PRESENT="true"
                         shift
                         ;;
-
+                -k | --kubernetes)
+                        export SECRETGEN="true" ;;
                -?*) die "Unknown option: $1" ;;
-                *) break ;;
+                *) echo "${2-}" && break ;;
                 esac
                 shift
         done
@@ -66,9 +72,13 @@ Available options:
 
 -v, --verbose           Print script debug info
 
+-q, --quiet             Only print final userdata
+
 -u, --userdata          Path to cloud-init user-data file (required)
 
 -n, --networkdata       Path to cloud-init networkdata file (optional)
+
+-k, --kubernetes        Create kubernetes secrets from user and network data (optional)
 
 -e, --envsubst          Enable usage of envsubst, disabled by default (optional)
 
@@ -259,7 +269,10 @@ main(){
 
     # Copy read-only file to an editable version
     cp $USER_DATA_SECRET_PATH $USER_DATA_PATH
-    cp $NETWORK_DATA_SECRET_PATH $NETWORK_DATA_PATH
+
+    if [[ ! -z "$NETWORK_DATA_SECRET_PATH" ]]; then
+        cp $NETWORK_DATA_SECRET_PATH $NETWORK_DATA_PATH
+    fi
 
     # Check the initial size of the cloud-init config
     check_size
@@ -285,7 +298,21 @@ main(){
     # Move the final file to the output directory
     #log "Optimized file saved to /output/user-data.yaml"
     #cp $USER_DATA_PATH /ouput/user-data.yaml
+    log "Printing final userdata:"
     cat $USER_DATA_PATH |yq
+
+
+    if [[ ! -z "$NETWORK_DATA_SECRET_PATH" ]]; then
+        log "Printing final networkdata:"
+        cat $NETWORK_DATA_PATH |yq
+    fi
+
+    if [ "$SECRETGEN" == "true" ]; then
+    bash ./secretgen.sh \
+        --secretname $SECRET_NAME \
+        --userdata $USER_DATA_PATH \
+        --networkdata $NETWORK_DATA_PATH
+    fi
 }
 
 main $@

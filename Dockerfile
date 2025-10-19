@@ -35,8 +35,10 @@ RUN useradd -ms /bin/bash $USER \
     && mkdir -p /home/$USER/.local/lib
 
 COPY ./cigen.sh /home/$USER/cigen.sh
+COPY ./secretgen.sh /home/$USER/secretgen.sh
 
 RUN chmod +x /home/$USER/cigen.sh \
+    && chmod +x /home/$USER/secretgen.sh \
     && sudo chown -R $USER:$USER /home/$USER \
     && sudo chmod -R u+rw /home/$USER
 
