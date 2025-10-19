@@ -7,6 +7,7 @@ export USER_DATA_PATH=""
 export NETWORK_DATA_PATH=""
 export NETWORK_DATA_PRESENT="false"
 export QUIET="false"
+export FORCE="false"
 
 # Parse and validate user inputs.
 parse_params() {
@@ -14,7 +15,10 @@ parse_params() {
                 case "${1-}" in
                 -h | --help) usage ;;
                 -v | --verbose) set -x ;;
-                -q | --quiet) export QUIET="true" ;;
+                -q | --quiet)
+                        export QUIET="${2-}"
+                        shift
+                        ;;
                 -u | --userdata)
                         export USER_DATA_PATH="${2-}"
                         shift
@@ -25,6 +29,18 @@ parse_params() {
                         ;;
                 -s | --secretname)
                         export SECRET_NAME="${2-}"
+                        shift
+                        ;;
+                -un | --username)
+                        export USERNAME="${2-}"
+                        shift
+                        ;;
+                -p | --password)
+                        export PASSWORD="${2-}"
+                        shift
+                        ;;
+                -f | --force)
+                        export FORCE="${2-}"
                         shift
                         ;;
                -?*) die "Unknown option: $1" ;;
@@ -70,13 +86,19 @@ secret_exists(){
     export SECRET_EXISTS=$(kubectl get secret ${SECRET_NAME} -o yaml |grep -o "${SECRET_NAME}" |wc -l)
 
     if [ "${SECRET_EXISTS}" -gt 0 ]; then
-        log "Kubernetes secret ${SECRET_NAME} exists and will be replaced"
+        log "Kubernetes secret: ${SECRET_NAME} exists and and FORCE is set to $FORCE"
+        if [ "${FORCE}" == "true" ]; then
+            log "Kubernetes secret: ${SECRET_NAME} will be replaced."
 
-        RESULT=$(kubectl patch secret ${SECRET_NAME} -p '{"metadata":{"finalizers":null}}' --type=merge)
-        log "$RESULT"
+            RESULT=$(kubectl patch secret ${SECRET_NAME} -p '{"metadata":{"finalizers":null}}' --type=merge)
+            log "$RESULT"
 
-        RESULT=$(kubectl delete secret ${SECRET_NAME})
-        log "$RESULT"
+            RESULT=$(kubectl delete secret ${SECRET_NAME})
+            log "$RESULT"
+        else
+            log "Kubernetes secret: ${SECRET_NAME} will not be replaced."
+            exit 0
+        fi
     fi
 }
 
@@ -92,10 +114,19 @@ cretae_userdata_secret(){
         RESULT=$(kubectl create secret generic ${SECRET_NAME} --from-file=userdata="${USER_DATA_PATH}")
         log "$RESULT"
     fi
-    annotate_userdata_secret
+    annotate_secret
 }
 
-annotate_userdata_secret(){
+cretae_credential_secret(){
+    log "Creating kubernetes secret ${SECRET_NAME} as user credentials for $USERNAME"
+    RESULT=$(kubectl create secret generic ${SECRET_NAME} \
+        --from-literal=username="${USERNAME}" \
+        --from-literal=password="${PASSWORD}")
+    log "$RESULT"
+    annotate_secret
+}
+
+annotate_secret(){
     log "Adding argocd tracking annotation."
     RESULT=$(kubectl annotate --overwrite secret ${SECRET_NAME} \
         argocd.argoproj.io/tracking-id="${ARGOCD_APP_NAME}:v1/Secret:${NAMESPACE}/${SECRET_NAME}")
@@ -129,6 +160,8 @@ main(){
     if [[ ! -z "$USER_DATA_PATH" ]]; then
         detect_networkdata
         cretae_userdata_secret
+    else
+        cretae_credential_secret
     fi
 }
 

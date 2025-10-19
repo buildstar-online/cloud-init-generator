@@ -26,6 +26,7 @@ export NETWORK_DATA_SECRET_PATH=""
 export NETWORK_DATA_PATH="network-data.yaml"
 export NETWORK_DATA_PRESENT="false"
 export SECRETGEN="false"
+export FORCE="false"
 
 # Parse and validate user inputs.
 parse_params() {
@@ -36,7 +37,9 @@ parse_params() {
                 -e | --envsubst)
                         export ENVSUBST="true" ;;
                 -q | --quiet)
-                        export QUIET="true" ;;
+                        export QUIET="${2-}"
+                        shift
+                        ;;
                 -s | --salt)
                         export SALT="${2-}"
                         shift
@@ -52,6 +55,10 @@ parse_params() {
                         ;;
                 -k | --kubernetes)
                         export SECRETGEN="true" ;;
+                -f | --force)
+                        export FORCE="${2-}"
+                        shift
+                        ;;
                -?*) die "Unknown option: $1" ;;
                 *) echo "${2-}" && break ;;
                 esac
@@ -72,7 +79,7 @@ Available options:
 
 -v, --verbose           Print script debug info
 
--q, --quiet             Only print final userdata
+-q, --quiet             Only print final userdata [true/false]
 
 -u, --userdata          Path to cloud-init user-data file (required)
 
@@ -137,6 +144,16 @@ admin_password(){
                     exit 1
                 fi
             fi
+        fi
+
+        # If user kubernetes
+        if [ "$SECRETGEN" == "true" ]; then
+            bash ./secretgen.sh \
+                --secretname "${user}-credentials" \
+                --username "${user}" \
+                --password "${PASSWORD}" \
+                --quiet "${QUIET}" \
+                --force "${FORCE}"
         fi
 
         log "Setting hashed password for user: $user"
@@ -267,9 +284,8 @@ main(){
 
     log "Starting Cloud-Init Optomizer"
 
-    # Copy read-only file to an editable version
+    # Copy read-only files to editable versions
     cp $USER_DATA_SECRET_PATH $USER_DATA_PATH
-
     if [[ ! -z "$NETWORK_DATA_SECRET_PATH" ]]; then
         cp $NETWORK_DATA_SECRET_PATH $NETWORK_DATA_PATH
     fi
@@ -293,24 +309,23 @@ main(){
     validate
 
     # Do a final size check of our modified config file
-    #check_size
+    check_size
 
-    # Move the final file to the output directory
-    #log "Optimized file saved to /output/user-data.yaml"
-    #cp $USER_DATA_PATH /ouput/user-data.yaml
-    log "Printing final userdata."
-    cat $USER_DATA_PATH |yq
-
-    if [[ ! -z "$NETWORK_DATA_SECRET_PATH" ]]; then
-        log "Printing final networkdata."
-        cat $NETWORK_DATA_PATH |yq
-    fi
-
+    # call secretgen to create a kubernetes cloudInit NoCloud secret containing
+    # the userdata and network data
     if [ "$SECRETGEN" == "true" ]; then
-    bash ./secretgen.sh \
-        --secretname $SECRET_NAME \
-        --userdata $USER_DATA_PATH \
-        --networkdata $NETWORK_DATA_PATH
+        bash ./secretgen.sh \
+            --secretname "${SECRET_NAME}" \
+            --userdata "${USER_DATA_PATH}" \
+            --networkdata "${NETWORK_DATA_PATH}" \
+            --quiet "${QUIET}" \
+            --force "${FORCE}"
+    else
+        # Move the final file to the output directory
+        #log "Optimized file saved to /output/user-data.yaml"
+        #cp $USER_DATA_PATH /ouput/user-data.yaml
+        log "Printing final userdata."
+        cat $USER_DATA_PATH |yq
     fi
 }
 
