@@ -311,6 +311,10 @@ main(){
     # Do a final size check of our modified config file
     check_size
 
+    # use `raw log.json |yq -p=json '.message |fromyaml' |jq` to re-expand log line
+    #RENDER="$(cat $USER_DATA_PATH |yq -o=json '.' |jq tojson)"
+    #log "${RENDER:1:-1}"
+
     # call secretgen to create a kubernetes cloudInit NoCloud secret containing
     # the userdata and network data
     if [ "$SECRETGEN" == "true" ]; then

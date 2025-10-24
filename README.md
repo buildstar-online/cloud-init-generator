@@ -43,6 +43,20 @@ docker run -it -u 1000 -v $(pwd)/test-configs:/configs \
     --networkdata /configs/networkdata.yaml \
     --kubernetes \
     --envsubst
+
+docker run -it -u 1000 \
+    -v $(pwd)/test-configs:/configs \
+    -v /Users/max/.config/kube:/kube \
+    --env USERNAME=runner \
+    --env OPERATOR_PASSWORD=password \
+    --env MACADDRESS='b8:a3:86:70:cc:e6' \
+    --env SECRET_NAME="my-test-userdata" \
+    cigen --userdata /configs/userdata.yaml \
+    --networkdata /configs/networkdata.yaml \
+    --kubernetes \
+    --envsubst \
+    --quiet false \
+    --force true
 ```
 
 ## Why Cloud-Init?

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -Eeuo pipefail
 
 export KUBECONFIG=/kube/config
 export USER_DATA_PATH=""
